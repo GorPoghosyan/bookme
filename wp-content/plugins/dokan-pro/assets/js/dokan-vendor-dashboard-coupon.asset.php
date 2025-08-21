@@ -1,0 +1,1 @@
+<?php return array('dependencies' => array('dokan-stores-core', 'dokan-stores-product-categories', 'dokan-stores-products', 'react', 'react-dom', 'wp-api-fetch', 'wp-components', 'wp-compose', 'wp-data', 'wp-date', 'wp-dom-ready', 'wp-element', 'wp-i18n', 'wp-plugins', 'wp-url'), 'version' => '23072b387d74d6d8baa6');

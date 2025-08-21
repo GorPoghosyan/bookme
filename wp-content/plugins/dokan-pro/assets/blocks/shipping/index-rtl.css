@@ -1,0 +1,16 @@
+/*!*************************************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/@wordpress/scripts/node_modules/css-loader/dist/cjs.js??clonedRuleSet-7.use[1]!./node_modules/postcss-loader/dist/cjs.js??clonedRuleSet-7.use[2]!./node_modules/sass-loader/dist/cjs.js??clonedRuleSet-7.use[3]!./assets/src/js/blocks/shipping/index.scss ***!
+  \*************************************************************************************************************************************************************************************************************************************************************************************/
+.dokan-shipping-remaining-amount {
+  margin-top: 30px;
+  border: 1px solid #fce5b7;
+  border-radius: 5px;
+  background-color: #fffbf3;
+}
+.dokan-shipping-remaining-amount .dokan-shipping-remaining-amount-list {
+  border-bottom: 1px solid #fce5b7;
+  padding: 1rem;
+}
+.dokan-shipping-remaining-amount .dokan-shipping-remaining-amount-list:last-child {
+  border-bottom: 0;
+}
