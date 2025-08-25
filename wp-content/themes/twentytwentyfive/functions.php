@@ -172,4 +172,6 @@ function custom_inline_styles() {
 }
 add_action('wp_head', 'custom_inline_styles');
 
+require get_template_directory() . '/overrides/wcfm-staffs-override.php';
+
 
