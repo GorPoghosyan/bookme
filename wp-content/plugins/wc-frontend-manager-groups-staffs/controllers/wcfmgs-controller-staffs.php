@@ -16,15 +16,116 @@ class WCFMgs_Staffs_Controller {
 		
 		$this->processing();
 	}
-	
+
+    // Overrided the processing function
+    public function processing() {
+        global $WCFM, $wpdb, $_POST, $WCFMu, $WCFMgs;
+
+        $length = isset($_POST['length']) ? intval($_POST['length']) : 10;
+        $offset = isset($_POST['start']) ? intval($_POST['start']) : 0;
+        $draw   = isset($_POST['draw']) ? intval($_POST['draw']) : 1;
+
+        $staff_user_role = apply_filters('wcfm_staff_user_role', 'shop_staff');
+
+        $args = [
+            'role__in'    => [$staff_user_role],
+            'orderby'     => 'ID',
+            'order'       => 'ASC',
+            'offset'      => $offset,
+            'number'      => $length,
+            'count_total' => true,
+        ];
+
+        if (isset($_POST['search']) && !empty($_POST['search']['value'])) {
+            $serach_str = sanitize_text_field($_POST['search']['value']);
+            $args['search'] = "*{$serach_str}*";
+
+            $search_fields = [
+                'first_name',
+                'last_name',
+                'nickname',
+                'billing_first_name',
+                'billing_email',
+                'billing_phone',
+                'billing_company',
+                'billing_address_1',
+                'billing_city',
+                'billing_state',
+                'billing_postcode',
+            ];
+
+            $meta_query = ['relation' => 'OR'];
+
+            foreach ($search_fields as $field) {
+                $meta_query[] = [
+                    'key'     => $field,
+                    'value'   => $serach_str,
+                    'compare' => 'LIKE',
+                ];
+            }
+
+            $args['meta_query'] = apply_filters('wcfm_get_customers_meta_search', $meta_query);
+        }
+
+        // Total count (without pagination/filter)
+        $total_args = $args;
+        $total_args['number'] = -1;
+        $total_args['offset'] = 0;
+        $total_args['search'] = '';
+        $recordsTotal = count(get_users($total_args));
+
+        // Filtered users
+        $users = get_users($args);
+        $recordsFiltered = count(get_users(array_merge($args, ['number' => -1, 'offset' => 0])));
+
+        $data = [];
+        foreach ($users as $user) {
+            $row = [];
+
+            // Staff (link)
+            $row[] = '<a href="' . get_wcfm_shop_staffs_manage_url($user->ID) . '" class="wcfm_dashboard_item_title">' . esc_html($user->user_login) . '</a>';
+
+            // Store
+            $vendor_id = get_user_meta($user->ID, '_wcfm_vendor', true);
+            if ($vendor_id) {
+                $row[] = '<span class="wcfm_vendor_store">' . $WCFM->wcfm_vendor_support->wcfm_get_vendor_store_by_vendor($vendor_id) . '</span>';
+            } else {
+                $row[] = '&ndash;';
+            }
+
+            // Name
+            $row[] = esc_html($user->first_name . ' ' . $user->last_name);
+
+            // Email
+            $row[] = esc_html($user->user_email);
+
+            // Actions
+            $actions  = '<a class="wcfm-action-icon" href="' . get_wcfm_shop_staffs_manage_url($user->ID) . '"><span class="wcfmfa fa-edit text_tip" data-tip="Manage Staff"></span></a>';
+            $actions .= '<a class="wcfm_staff_delete wcfm-action-icon" href="#" data-staffid="' . $user->ID . '"><span class="wcfmfa fa-trash-alt text_tip" data-tip="Delete"></span></a>';
+            $row[] = $actions;
+
+            $data[] = $row;
+        }
+
+        $response = [
+            "draw"            => $draw,
+            "recordsTotal"    => $recordsTotal,
+            "recordsFiltered" => $recordsFiltered,
+            "data"            => $data,
+        ];
+
+        wp_send_json($response);
+    }
+
+	/*
 	public function processing() {
 		global $WCFM, $wpdb, $_POST, $WCFMu, $WCFMgs;
-		
+
 		$length = $_POST['length'];
 		$offset = $_POST['start'];
-		
+
 		$staff_user_role = apply_filters( 'wcfm_staff_user_role', 'shop_staff' );
-		
+
 		$args = array(
 									'role__in'     => array( $staff_user_role ),
 									'orderby'      => 'ID',
@@ -32,15 +133,15 @@ class WCFMgs_Staffs_Controller {
 									'offset'       => $offset,
 									'number'       => $length,
 									'count_total'  => false
-								 ); 
-		
+								 );
+
 		$args = apply_filters( 'wcfmgs_get_shop_staffs_args', $args );
-		
+
 		if( isset( $_POST['search'] ) && !empty( $_POST['search']['value'] )) {
 			$serach_str = esc_attr( $_POST['search']['value'] );
 			//$args['search'] = $serach_str;
-			
-			$args['meta_query'] = array( 
+
+			$args['meta_query'] = array(
 																	apply_filters( 'wcfm_get_customers_meta_search', array(
 																																												 'relation' => 'OR',
 																																													array(
@@ -98,13 +199,13 @@ class WCFMgs_Staffs_Controller {
 																																															'value'   => $serach_str,
 																																															'compare' => 'LIKE'
 																																													),
-																																											) 
+																																											)
 																		)
 																);
 		}
-		
+
 		$wcfm_shop_staffs_array = get_users( $args );
-		            
+
 		// Get Product Count
 		$shop_staffs_count = 0;
 		$filtered_shop_staffs_count = 0;
@@ -114,8 +215,8 @@ class WCFMgs_Staffs_Controller {
 		$args['offset'] = 0;
 		$wcfm_filterd_shop_staffs_array = get_users( $args );
 		$filtered_shop_staffs_count = count($wcfm_filterd_shop_staffs_array);
-		
-		
+
+
 		// Generate Products JSON
 		$wcfm_shop_staffs_json = '';
 		$wcfm_shop_staffs_json = '{
@@ -127,11 +228,11 @@ class WCFMgs_Staffs_Controller {
 		$wcfm_shop_staffs_json_arr = array();
 		if(!empty($wcfm_shop_staffs_array)) {
 			foreach( $wcfm_shop_staffs_array as $wcfm_shop_staffs_single ) {
-				
+
 				// Staff
 				$shop_label =  '<a href="' . get_wcfm_shop_staffs_manage_url($wcfm_shop_staffs_single->ID) . '" class="wcfm_dashboard_item_title">' . $wcfm_shop_staffs_single->user_login . '</a>';
 				$wcfm_shop_staffs_json_arr[$index][] = $shop_label;
-				
+
 				// Store
 				$wcfm_vendors_id = get_user_meta( $wcfm_shop_staffs_single->ID, '_wcfm_vendor', true );
 				if( $wcfm_vendors_id ) {
@@ -139,27 +240,28 @@ class WCFMgs_Staffs_Controller {
 				} else {
 					$wcfm_shop_staffs_json_arr[$index][] = '&ndash;';
 				}
-				
+
 				// Name
 				$wcfm_shop_staffs_json_arr[$index][] = $wcfm_shop_staffs_single->first_name . ' ' . $wcfm_shop_staffs_single->last_name;
-				
+
 				// Email
 				$wcfm_shop_staffs_json_arr[$index][] = $wcfm_shop_staffs_single->user_email;
-				
+
 				// Action
 				$actions = '<a class="wcfm-action-icon" href="' . get_wcfm_shop_staffs_manage_url( $wcfm_shop_staffs_single->ID ) . '"><span class="wcfmfa fa-edit text_tip" data-tip="' . esc_attr__( 'Manage Staff', 'wc-frontend-manager-ultimate' ) . '"></span></a>';
 				$actions .= '<a class="wcfm_staff_delete wcfm-action-icon" href="#" data-staffid="' . $wcfm_shop_staffs_single->ID . '"><span class="wcfmfa fa-trash-alt text_tip" data-tip="' . esc_attr__( 'Delete', 'wc-frontend-manager' ) . '"></span></a>';
 				$wcfm_shop_staffs_json_arr[$index][] = apply_filters ( 'wcfm_shop_staffs_actions', $actions, $wcfm_shop_staffs_single );
-				
-				
+
+
 				$index++;
-			}												
+			}
 		}
 		if( !empty($wcfm_shop_staffs_json_arr) ) $wcfm_shop_staffs_json .= json_encode($wcfm_shop_staffs_json_arr);
 		else $wcfm_shop_staffs_json .= '[]';
 		$wcfm_shop_staffs_json .= '
 													}';
-													
+
 		echo $wcfm_shop_staffs_json;
 	}
+	*/
 }
