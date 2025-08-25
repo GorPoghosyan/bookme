@@ -1,0 +1,43 @@
+[25-Aug-2025 06:52:03 UTC] PHP Fatal error:  Uncaught TypeError: ftp_nlist(): Argument #1 ($ftp) must be of type FTP\Connection, null given in /var/www/html/bookme/wp-admin/includes/class-wp-filesystem-ftpext.php:438
+Stack trace:
+#0 /var/www/html/bookme/wp-admin/includes/class-wp-filesystem-ftpext.php(438): ftp_nlist()
+#1 /var/www/html/bookme/wp-admin/includes/class-wp-filesystem-ftpext.php(456): WP_Filesystem_FTPext->exists()
+#2 /var/www/html/bookme/wp-admin/includes/class-wp-filesystem-ftpext.php(265): WP_Filesystem_FTPext->is_file()
+#3 /var/www/html/bookme/wp-content/plugins/woocommerce/src/Internal/Admin/Logging/FileV2/File.php(417): WP_Filesystem_FTPext->chmod()
+#4 /var/www/html/bookme/wp-content/plugins/woocommerce/src/Internal/Admin/Logging/FileV2/File.php(438): Automattic\WooCommerce\Internal\Admin\Logging\FileV2\File->create()
+#5 /var/www/html/bookme/wp-content/plugins/woocommerce/src/Internal/Admin/Logging/FileV2/FileController.php(135): Automattic\WooCommerce\Internal\Admin\Logging\FileV2\File->write()
+#6 /var/www/html/bookme/wp-content/plugins/woocommerce/src/Internal/Admin/Logging/LogHandlerFileV2.php(62): Automattic\WooCommerce\Internal\Admin\Logging\FileV2\FileController->write_to_file()
+#7 /var/www/html/bookme/wp-content/plugins/woocommerce/includes/class-wc-logger.php(189): Automattic\WooCommerce\Internal\Admin\Logging\LogHandlerFileV2->handle()
+#8 /var/www/html/bookme/wp-content/plugins/woocommerce/includes/class-wc-logger.php(311): WC_Logger->log()
+#9 /var/www/html/bookme/wp-content/plugins/woocommerce/src/Internal/Admin/Orders/PageController.php(442): WC_Logger->debug()
+#10 /var/www/html/bookme/wp-content/plugins/woocommerce/src/Utilities/OrderUtil.php(136): Automattic\WooCommerce\Internal\Admin\Orders\PageController->get_edit_url()
+#11 /var/www/html/bookme/wp-content/plugins/dokan-lite/includes/Utilities/OrderUtil.php(178): Automattic\WooCommerce\Utilities\OrderUtil::get_order_admin_edit_url()
+#12 /var/www/html/bookme/wp-content/plugins/dokan-lite/includes/Assets.php(1330): WeDevs\Dokan\Utilities\OrderUtil::get_admin_order_edit_url()
+#13 /var/www/html/bookme/wp-content/plugins/dokan-lite/includes/Assets.php(66): WeDevs\Dokan\Assets->get_admin_localized_scripts()
+#14 /var/www/html/bookme/wp-includes/class-wp-hook.php(324): WeDevs\Dokan\Assets->enqueue_admin_scripts()
+#15 /var/www/html/bookme/wp-includes/class-wp-hook.php(348): WP_Hook->apply_filters()
+#16 /var/www/html/bookme/wp-includes/plugin.php(517): WP_Hook->do_action()
+#17 /var/www/html/bookme/wp-admin/admin-header.php(123): do_action()
+#18 /var/www/html/bookme/wp-admin/admin.php(240): require_once('...')
+#19 {main}
+  thrown in /var/www/html/bookme/wp-admin/includes/class-wp-filesystem-ftpext.php on line 438
+[25-Aug-2025 06:52:03 UTC] PHP Fatal error:  Uncaught TypeError: ftp_nlist(): Argument #1 ($ftp) must be of type FTP\Connection, null given in /var/www/html/bookme/wp-admin/includes/class-wp-filesystem-ftpext.php:438
+Stack trace:
+#0 /var/www/html/bookme/wp-admin/includes/class-wp-filesystem-ftpext.php(438): ftp_nlist()
+#1 /var/www/html/bookme/wp-admin/includes/class-wp-filesystem-ftpext.php(456): WP_Filesystem_FTPext->exists()
+#2 /var/www/html/bookme/wp-content/plugins/woocommerce/src/Internal/Admin/Logging/FileV2/File.php(254): WP_Filesystem_FTPext->is_file()
+#3 /var/www/html/bookme/wp-content/plugins/woocommerce/src/Internal/Admin/Logging/FileV2/File.php(437): Automattic\WooCommerce\Internal\Admin\Logging\FileV2\File->is_writable()
+#4 /var/www/html/bookme/wp-content/plugins/woocommerce/src/Internal/Admin/Logging/FileV2/FileController.php(135): Automattic\WooCommerce\Internal\Admin\Logging\FileV2\File->write()
+#5 /var/www/html/bookme/wp-content/plugins/woocommerce/src/Internal/Admin/Logging/LogHandlerFileV2.php(62): Automattic\WooCommerce\Internal\Admin\Logging\FileV2\FileController->write_to_file()
+#6 /var/www/html/bookme/wp-content/plugins/woocommerce/includes/class-wc-logger.php(189): Automattic\WooCommerce\Internal\Admin\Logging\LogHandlerFileV2->handle()
+#7 /var/www/html/bookme/wp-content/plugins/woocommerce/includes/class-wc-logger.php(236): WC_Logger->log()
+#8 /var/www/html/bookme/wp-content/plugins/woocommerce/includes/class-woocommerce.php(429): WC_Logger->critical()
+#9 [internal function]: WooCommerce->log_errors()
+#10 {main}
+  thrown in /var/www/html/bookme/wp-admin/includes/class-wp-filesystem-ftpext.php on line 438
+[25-Aug-2025 06:53:02 UTC] PHP Warning:  touch(): Unable to create file /var/www/html/bookme/wp-content/uploads/wc-logs/plugin-woocommerce-2025-08-25-b6d43a2b4121815424d88b6fec6e9615.log because Permission denied in /var/www/html/bookme/wp-admin/includes/class-wp-filesystem-direct.php on line 529
+[25-Aug-2025 06:53:03 UTC] PHP Warning:  Undefined array key "new_seller_enable_selling" in /var/www/html/bookme/wp-content/plugins/dokan-lite/includes/Admin/Settings.php on line 136
+[25-Aug-2025 07:07:30 UTC] PHP Warning:  touch(): Unable to create file /var/www/html/bookme/wp-content/uploads/wc-logs/plugin-woocommerce-2025-08-25-b6d43a2b4121815424d88b6fec6e9615.log because Permission denied in /var/www/html/bookme/wp-admin/includes/class-wp-filesystem-direct.php on line 529
+[25-Aug-2025 07:07:31 UTC] PHP Warning:  Undefined array key "new_seller_enable_selling" in /var/www/html/bookme/wp-content/plugins/dokan-lite/includes/Admin/Settings.php on line 136
+[25-Aug-2025 07:07:32 UTC] PHP Deprecated:  File Theme without header.php is <strong>deprecated</strong> since version 3.0.0 with no alternative available. Please include a header.php template in your theme. in /var/www/html/bookme/wp-includes/functions.php on line 6121
+[25-Aug-2025 07:07:32 UTC] PHP Deprecated:  File Theme without footer.php is <strong>deprecated</strong> since version 3.0.0 with no alternative available. Please include a footer.php template in your theme. in /var/www/html/bookme/wp-includes/functions.php on line 6121
