@@ -171,3 +171,15 @@ function custom_inline_styles() {
     <?php
 }
 add_action('wp_head', 'custom_inline_styles');
+
+add_filter( 'wcfm_staffs_query_args', function( $args, $vendor_id ) {
+    // $vendor_id is automatically passed by WCFM
+    if ( $vendor_id ) {
+        $args['meta_query'][] = [
+            'key'     => '_wcfm_staff_vendor', // meta key used by WCFM
+            'value'   => $vendor_id,
+            'compare' => '='
+        ];
+    }
+    return $args;
+}, 10, 2 );
