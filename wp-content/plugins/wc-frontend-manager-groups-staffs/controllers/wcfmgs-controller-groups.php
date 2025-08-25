@@ -16,7 +16,96 @@ class WCFMgs_Groups_Controller {
 		
 		$this->processing();
 	}
-	
+
+    public function processing() {
+        global $WCFM, $wpdb, $_POST;
+
+        $length = intval($_POST['length']);
+        $offset = intval($_POST['start']);
+        $draw   = intval($_POST['draw']);
+
+        $args = [
+            'posts_per_page' => $length,
+            'offset'         => $offset,
+            'orderby'        => 'date',
+            'order'          => 'DESC',
+            'post_type'      => 'wcfm_vendor_groups',
+            'post_status'    => ['draft', 'pending', 'publish'],
+            'suppress_filters'=> true
+        ];
+
+        // Search
+        if (!empty($_POST['search']['value'])) {
+            $args['s'] = sanitize_text_field($_POST['search']['value']);
+        }
+
+        $args = apply_filters('wcfm_vendor_groups_args', $args);
+
+        $groups_array = get_posts($args);
+
+        // Total counts
+        $group_count_obj = wp_count_posts('wcfm_vendor_groups');
+        $total_count = $group_count_obj->publish + $group_count_obj->pending + $group_count_obj->draft;
+
+        $args['posts_per_page'] = -1;
+        $args['offset'] = 0;
+        $filtered_array = get_posts($args);
+        $filtered_count = count($filtered_array);
+
+        $is_marketplace = wcfm_is_marketplace();
+
+        $data = [];
+        if (!empty($groups_array)) {
+            foreach ($groups_array as $group) {
+                $row = [];
+
+                // Thumb
+                $thumbnail = get_post_meta($group->ID, 'thumbnail', true);
+                if ($thumbnail) {
+                    $row[] = '<a href="' . get_wcfm_groups_manage_url($group->ID) . '"><img src="' . wcfm_get_attachment_url($thumbnail) . '" width="30" /></a>';
+                } else {
+                    $row[] = '<a href="' . get_wcfm_groups_manage_url($group->ID) . '"><img src="' . apply_filters('woocommerce_placeholder_img_src', WC()->plugin_url() . '/assets/images/placeholder.png') . '" width="30" /></a>';
+                }
+
+                // Group title
+                $row[] = '<a href="' . get_wcfm_groups_manage_url($group->ID) . '" class="wcfm_dashboard_item_title">' . esc_html($group->post_title) . '</a>';
+
+                // Vendor count
+                if ($is_marketplace) {
+                    $_group_vendors = get_post_meta($group->ID, '_group_vendors', true);
+                    $row[] = '<span class="vendor_count">' . ($_group_vendors && is_array($_group_vendors) ? count($_group_vendors) : '&ndash;') . '</span>';
+                } else {
+                    $row[] = '<span class="vendor_count">&ndash;</span>';
+                }
+
+                // Manager count
+                $_group_managers = get_post_meta($group->ID, '_group_managers', true);
+                $row[] = '<span class="manager_count">' . ($_group_managers && is_array($_group_managers) ? count($_group_managers) : '&ndash;') . '</span>';
+
+                // Actions
+                $actions = '';
+                if (apply_filters('wcfm_is_allow_groups_archive', true)) {
+                    $actions .= '<a class="wcfm-action-icon" target="_blank" href="' . get_permalink($group->ID) . '"><span class="wcfmfa fa-eye text_tip" data-tip="' . esc_attr__('View', 'wc-frontend-manager') . '"></span></a>';
+                }
+                $actions .= '<a class="wcfm-action-icon" href="' . get_wcfm_groups_manage_url($group->ID) . '"><span class="wcfmfa fa-edit text_tip" data-tip="' . esc_attr__('Edit', 'wc-frontend-manager') . '"></span></a>';
+                $actions .= '<a class="wcfm_group_delete wcfm-action-icon" href="#" data-groupid="' . $group->ID . '"><span class="wcfmfa fa-trash-alt text_tip" data-tip="' . esc_attr__('Delete', 'wc-frontend-manager') . '"></span></a>';
+                $row[] = apply_filters('wcfm_vendor_groups_actions', $actions, $group);
+
+                $data[] = $row;
+            }
+        }
+
+        $response = [
+            'draw'            => $draw,
+            'recordsTotal'    => $total_count,
+            'recordsFiltered' => $filtered_count,
+            'data'            => $data,
+        ];
+
+        wp_send_json($response);
+    }
+
+	/*
 	public function processing() {
 		global $WCFM, $wpdb, $_POST, $WCFMu, $WCFMgs;
 		
@@ -120,5 +209,5 @@ class WCFMgs_Groups_Controller {
 													}';
 													
 		echo $wcfm_groups_json;
-	}
+	}*/
 }

@@ -16,7 +16,79 @@ class WCFMgs_Managers_Controller {
 		
 		$this->processing();
 	}
-	
+
+    public function processing() {
+        global $WCFM;
+
+        $length = intval($_POST['length']);
+        $offset = intval($_POST['start']);
+        $draw   = intval($_POST['draw']);
+
+        $args = [
+            'role__in'    => ['shop_manager'],
+            'orderby'     => 'ID',
+            'order'       => 'ASC',
+            'offset'      => $offset,
+            'number'      => $length,
+            'count_total' => true, // important to get total users
+        ];
+
+        // Search
+        if (!empty($_POST['search']['value'])) {
+            $search_str = sanitize_text_field($_POST['search']['value']);
+            $args['search'] = "*{$search_str}*";
+            $args['search_columns'] = ['user_login', 'user_email', 'display_name'];
+        }
+
+        $args = apply_filters('wcfmgs_get_shop_managers_args', $args);
+
+        $user_query = new WP_User_Query($args);
+        $users      = $user_query->get_results();
+        $total      = $user_query->get_total(); // total managers
+
+        $data = [];
+        foreach ($users as $user) {
+            $row = [];
+
+            // Manager login
+            $row[] = '<a href="' . get_wcfm_shop_managers_manage_url($user->ID) . '" class="wcfm_dashboard_item_title">' . esc_html($user->user_login) . '</a>';
+
+            // Name
+            $row[] = esc_html($user->first_name . ' ' . $user->last_name);
+
+            // Email
+            $row[] = esc_html($user->user_email);
+
+            // Groups
+            $user_groups = (array) get_user_meta($user->ID, '_wcfm_vendor_group', true);
+            if (!empty($user_groups)) {
+                $group_names = array_map(function($group_id) {
+                    return $group_id ? get_the_title($group_id) : '';
+                }, $user_groups);
+                $row[] = esc_html(implode(', ', array_filter($group_names))) ?: '&ndash;';
+            } else {
+                $row[] = '&ndash;';
+            }
+
+            // Actions
+            $actions  = '<a class="wcfm-action-icon" href="' . get_wcfm_shop_managers_manage_url($user->ID) . '"><span class="wcfmfa fa-edit text_tip" data-tip="' . esc_attr__('Manage Manager', 'wc-frontend-manager-ultimate') . '"></span></a>';
+            $actions .= '<a class="wcfm_manager_delete wcfm-action-icon" href="#" data-managerid="' . $user->ID . '"><span class="wcfmfa fa-trash-alt text_tip" data-tip="' . esc_attr__('Delete', 'wc-frontend-manager') . '"></span></a>';
+            $row[] = apply_filters('wcfm_shop_managers_actions', $actions, $user);
+
+            $data[] = $row;
+        }
+
+        $response = [
+            'draw'            => $draw,
+            'recordsTotal'    => $total,
+            'recordsFiltered' => $total, // adjust if implementing server-side filtering
+            'data'            => $data,
+        ];
+
+        wp_send_json($response);
+    }
+
+	/*
 	public function processing() {
 		global $WCFM, $wpdb, $_POST, $WCFMu, $WCFMgs;
 		
@@ -102,5 +174,5 @@ class WCFMgs_Managers_Controller {
 													}';
 													
 		echo $wcfm_shop_managers_json;
-	}
+	}*/
 }
