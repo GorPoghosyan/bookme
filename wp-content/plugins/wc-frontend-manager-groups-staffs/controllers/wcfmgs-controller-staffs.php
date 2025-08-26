@@ -36,9 +36,21 @@ class WCFMgs_Staffs_Controller {
             'count_total' => true,
         ];
 
+        if ( !current_user_can('administrator') ) {
+            $current_vendor_id = apply_filters('wcfm_current_vendor_id', get_current_user_id());
+
+            $args['meta_query'] = [
+                [
+                    'key'   => '_wcfm_vendor',
+                    'value' => $current_vendor_id,
+                ],
+            ];
+        }
+
+        // Search filter
         if (isset($_POST['search']) && !empty($_POST['search']['value'])) {
             $serach_str = sanitize_text_field($_POST['search']['value']);
-            $args['search'] = "*{$serach_str}*";
+//            $args['search'] = "*{$serach_str}*";
 
             $search_fields = [
                 'first_name',
@@ -54,24 +66,35 @@ class WCFMgs_Staffs_Controller {
                 'billing_postcode',
             ];
 
-            $meta_query = ['relation' => 'OR'];
-
+            $or_query = ['relation' => 'OR'];
             foreach ($search_fields as $field) {
-                $meta_query[] = [
+                $or_query[] = [
                     'key'     => $field,
                     'value'   => $serach_str,
                     'compare' => 'LIKE',
                 ];
             }
 
-            $args['meta_query'] = apply_filters('wcfm_get_customers_meta_search', $meta_query);
+            if ( !current_user_can('administrator') ) {
+                $meta_query = [
+                    'relation' => 'AND',
+                    [
+                        'key'   => '_wcfm_vendor',
+                        'value' => $current_vendor_id,
+                    ],
+                    $or_query
+                ];
+                $args['meta_query'] = apply_filters('wcfm_get_customers_meta_search', $meta_query);
+            } else {
+                $args['meta_query'] = apply_filters('wcfm_get_customers_meta_search', $or_query);
+            }
         }
 
         // Total count (without pagination/filter)
         $total_args = $args;
         $total_args['number'] = -1;
         $total_args['offset'] = 0;
-        $total_args['search'] = '';
+//        $total_args['search'] = '';
         $recordsTotal = count(get_users($total_args));
 
         // Filtered users
