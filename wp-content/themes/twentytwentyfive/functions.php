@@ -183,3 +183,85 @@ add_filter( 'wcfm_staffs_query_args', function( $args, $vendor_id ) {
     }
     return $args;
 }, 10, 2 );
+
+add_action( 'after_wcfm_products_manage_tabs_content', 'my_custom_staff_notes_field', 700, 4 );
+function my_custom_staff_notes_field( $product_id, $product_type, $wcfm_is_translated_product = false, $wcfm_wpml_edit_disable_element = '' ) {
+    global $WCFM;
+
+    $vendor_id = apply_filters( 'wcfm_current_vendor_id', get_current_user_id() );
+    $staff_user_role = apply_filters('wcfm_staff_user_role', 'shop_staff');
+
+    // If admin, show all staff
+    if ( current_user_can('manage_options') ) {
+        $vendorId = get_post_meta( $product_id, '_wcfm_vendor', true );
+        if ( empty( $vendorId ) ) {
+            $vendorId = (int) get_post_field( 'post_author', $product_id );
+        }
+        $args = [
+            'role__in'    => [$staff_user_role],
+            'meta_key'   => '_wcfm_vendor',
+            'meta_value' => $vendorId ?? '',
+            'orderby'    => 'ID',
+            'order'      => 'ASC',
+            'fields'     => ['ID','display_name'],
+        ];
+    } else {
+        $args = [
+            'role__in'    => [$staff_user_role],
+            'meta_key'   => '_wcfm_vendor',
+            'meta_value' => $vendor_id,
+            'orderby'    => 'ID',
+            'order'      => 'ASC',
+            'fields'     => ['ID','display_name'],
+        ];
+    }
+    $staff_users = get_users( $args );
+
+    $vendor_staff = [];
+    foreach ( $staff_users as $staff ) {
+        $vendor_staff[$staff->ID] = $staff->display_name;
+    }
+
+    $saved_staffs = (array) get_post_meta( $product_id, '_wcfm_assigned_staffs', true );
+    ?>
+    <div class="page_collapsible products_manage_vendor_association simple variable grouped external booking <?php echo esc_attr($wcfm_wpml_edit_disable_element); ?>" id="wcfm_products_manage_form_vendor_association_head">
+        <label class="wcfmfa fa-users"></label>
+        <?php esc_html_e( 'Assign Staff Members', 'wc-frontend-manager' ); ?>
+    </div>
+    <div class="wcfm-container simple variable external grouped booking">
+        <div id="wcfm_products_manage_form_vendor_association_expander" class="wcfm-content">
+            <?php
+            $WCFM->wcfm_fields->wcfm_generate_form_field( array(
+                "wcfm_assigned_staffs" => array(
+                    'label'       => __( 'Select Staff', 'wc-frontend-manager' ),
+                    'type'        => 'select',
+                    'options'     => $vendor_staff,
+                    'attributes'  => array(
+                        'multiple' => 'multiple',
+                        'style'    => 'width: 60%;'
+                    ),
+                    'class'       => 'wcfm-select wcfm_multi_select',
+                    'label_class' => 'wcfm_title',
+                    'value'       => $saved_staffs,
+                ),
+            ) );
+            ?>
+        </div>
+    </div>
+    <div class="wcfm_clearfix"></div>
+    <?php
+}
+
+add_action( 'after_wcfm_products_manage_meta_save', 'my_save_assigned_staffs', 700, 2 );
+function my_save_assigned_staffs( $new_product_id, $wcfm_products_manage_form_data ) {
+    if ( isset( $wcfm_products_manage_form_data['wcfm_assigned_staffs'] ) ) {
+        $assigned = (array) $wcfm_products_manage_form_data['wcfm_assigned_staffs'];
+        update_post_meta(
+            $new_product_id,
+            '_wcfm_assigned_staffs',
+            array_map( 'intval', $assigned )
+        );
+    } else {
+        delete_post_meta( $new_product_id, '_wcfm_assigned_staffs' );
+    }
+}
