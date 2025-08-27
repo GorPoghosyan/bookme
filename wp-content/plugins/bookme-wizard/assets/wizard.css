@@ -1,0 +1,18 @@
+/* Minimal, clean UI */
+.bookme-wizard-header{display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:1px solid #eee;background:#fff;position:sticky;top:0;z-index:9}
+.bookme-logo{font-weight:700;text-decoration:none}
+.bookme-steps{list-style:none;display:flex;gap:10px;margin:0;padding:0}
+.bookme-steps li{padding:6px 10px;border-radius:16px;background:#f3f4f6;font-size:13px}
+.bookme-steps li.active{background:#111;color:#fff}
+.bookme-wrapper{max-width:980px;margin:24px auto;padding:0 16px}
+.bookme-title{margin:8px 0 16px}
+.bookme-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.bookme-card{display:block;border:1px solid #eee;border-radius:14px;padding:16px;text-decoration:none;color:inherit;background:#fff}
+.bookme-card:hover{border-color:#ddd;box-shadow:0 4px 14px rgba(0,0,0,.06)}
+.bookme-card-title{font-weight:600;margin-bottom:6px}
+.bookme-card-meta{font-size:12px;color:#666}
+.bookme-back{display:inline-block;margin-bottom:12px}
+
+
+/* Hide Woo product chrome if product page renders */
+.single-product .product .summary.entry-summary h1.product_title{display:none}
