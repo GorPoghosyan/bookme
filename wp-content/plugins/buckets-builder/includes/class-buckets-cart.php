@@ -58,6 +58,11 @@ class Buckets_Cart {
         // mark as simple product
         wp_set_object_terms( $post_id, 'simple', 'product_type' );
 
+        // Set product visibility as hidden
+        wp_set_object_terms( $post_id, 'exclude-from-catalog', 'product_visibility', true );
+        wp_set_object_terms( $post_id, 'exclude-from-search', 'product_visibility', true );
+        update_post_meta( $post_id, '_visibility', 'hidden' );
+
         // product meta: prices & flags
         update_post_meta( $post_id, '_regular_price', wc_format_decimal( $total, wc_get_price_decimals() ) );
         update_post_meta( $post_id, '_price', wc_format_decimal( $total, wc_get_price_decimals() ) );
@@ -66,6 +71,38 @@ class Buckets_Cart {
         update_post_meta( $post_id, '_stock_status', 'instock' );
         update_post_meta( $post_id, '_sku', $sku );
         update_post_meta( $post_id, '_manage_stock', 'no' );
+
+        $image_path = WP_PLUGIN_DIR . '/buckets-builder/assets/img/bouquet.jpg';
+        if ( file_exists( $image_path ) ) {
+            require_once( ABSPATH . 'wp-admin/includes/image.php' );
+            require_once( ABSPATH . 'wp-admin/includes/file.php' );
+            require_once( ABSPATH . 'wp-admin/includes/media.php' );
+
+            $upload_dir = wp_upload_dir();
+            $filename   = basename( $image_path );
+            $new_path   = $upload_dir['path'] . '/' . $filename;
+
+            // Prevent duplicate copy
+            if ( ! file_exists( $new_path ) ) {
+                copy( $image_path, $new_path );
+            }
+
+            // Register image in Media Library
+            $attachment = array(
+                'guid'           => $upload_dir['url'] . '/' . $filename,
+                'post_mime_type' => 'image/jpeg',
+                'post_title'     => 'Custom Bucket Image',
+                'post_content'   => '',
+                'post_status'    => 'inherit',
+            );
+
+            $attach_id = wp_insert_attachment( $attachment, $new_path, $post_id );
+            if ( $attach_id ) {
+                $attach_data = wp_generate_attachment_metadata( $attach_id, $new_path );
+                wp_update_attachment_metadata( $attach_id, $attach_data );
+                set_post_thumbnail( $post_id, $attach_id );
+            }
+        }
 
         // Ensure WooCommerce session & cart ready
         if ( ! WC()->session ) {

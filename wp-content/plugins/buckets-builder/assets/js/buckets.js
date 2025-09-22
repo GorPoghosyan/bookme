@@ -30,6 +30,7 @@ jQuery(function($){
         var v = parseInt($input.val()) || 0;
         $input.val(v + 1);
         updateTotalAndUI();
+        updateFlowersInVase();
     });
 
     $(document).on('click', '.bb-minus', function(){
@@ -37,7 +38,43 @@ jQuery(function($){
         var v = parseInt($input.val()) || 0;
         if (v > 0) $input.val(v - 1);
         updateTotalAndUI();
+        updateFlowersInVase();
     });
+
+    function updateFlowersInVase() {
+        const container = $("#bb-flowers-in-vase").empty();
+        const positions = []; // keep used positions
+
+        $(".bb-item").each(function(i){
+            const qty = parseInt($(this).find('.bb-qty-input').val()) || 0;
+            const flowerName = $(this).data('flower');
+            if (!flowerName) return;
+
+            for (let j = 0; j < qty; j++) {
+                // Avoid overlapping: generate random top/left not already used
+                let top, left, attempts = 0;
+                do {
+                    top = Math.floor(10 - Math.random() * 60);
+                    left = Math.floor(60 + Math.random() * 90);
+                    attempts++;
+                } while (positions.find(p => Math.abs(p.top - top) < 20 && Math.abs(p.left - left) < 20) && attempts < 20);
+
+                positions.push({top, left});
+
+                const img = $("<img>")
+                    .attr("src", "/wp-content/plugins/buckets-builder/assets/img/flowers/" + flowerName)
+                    .addClass("bb-flower-in-vase")
+                    .css({
+                        top: top + "px",
+                        left: left + "px",
+                        transform: "rotate(" + Math.floor(Math.random() * 360) + "deg)",
+                        zIndex: 10 + j
+                    });
+                container.append(img);
+            }
+        });
+    }
+
 
     // Tabs clickable
     // $(document).on('click', '.bb-tab', function(){

@@ -30,8 +30,10 @@ $products = get_option( 'buckets_products', [] );
                         $product = wc_get_product( $pid );
                         if ( ! $product ) continue;
                         $price = $product->get_price();
+                        $image_url = get_the_post_thumbnail_url( $product->get_id() );
+                        $image_name = basename( $image_url );
                         ?>
-                        <div class="bb-item" data-id="<?php echo esc_attr( $pid ); ?>" data-price="<?php echo esc_attr( $price ); ?>">
+                        <div class="bb-item" data-id="<?php echo esc_attr( $pid ); ?>" data-price="<?php echo esc_attr( $price ); ?>" data-flower="<?php echo $image_name; ?>">
                             <div class="bb-thumb"><?php echo $product->get_image( 'medium' ); ?></div>
                             <div class="bb-info">
                                 <h4 class="bb-name"><?php echo esc_html( $product->get_name() ); ?></h4>
@@ -47,7 +49,17 @@ $products = get_option( 'buckets_products', [] );
                 </div>
 
                 <div class="bb-summary-row">
-                    <div class="bb-summary-total">Total: <span id="bucket-total">0</span></div>
+<!--                    <div class="bb-summary-total">Total: <span id="bucket-total">0</span></div>-->
+                    <div class="bb-summary-box">
+                        <div id="bb-vase-preview">
+                            <img src="/wp-content/plugins/buckets-builder/assets/img/vase.png" alt="Vase" class="vase-img" />
+                            <div id="bb-flowers-in-vase"></div>
+                        </div>
+                        <div class="bb-total-wrapper">
+                            <strong>Total:</strong>
+                            <span id="bucket-total">$0.00</span>
+                        </div>
+                    </div>
                     <div>
                         <button id="bucket-next" class="bb-btn bb-btn-next">Next</button>
                     </div>
@@ -62,7 +74,7 @@ $products = get_option( 'buckets_products', [] );
                         <tr>
                             <th>flowers and greenery</th>
                             <th>qty</th>
-                            <th>$</th>
+                            <th>price</th>
                         </tr>
                         </thead>
                         <tbody id="bucket-list"></tbody>

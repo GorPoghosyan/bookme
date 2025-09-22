@@ -55,7 +55,7 @@
 /* product grid */
 .bb-products {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
     gap: 18px;
 }
 
@@ -100,4 +100,38 @@
 @media (max-width:600px){
     .bb-products { grid-template-columns: 1fr; }
     .bb-tab.active:after { display:none; }
+}
+
+.bb-summary-box {
+    width: 250px;
+    float: right;
+    text-align: center;
+    padding: 10px;
+}
+
+#bb-vase-preview {
+    position: relative;
+    width: 100%;
+}
+
+.vase-img {
+    width: 150px;
+    margin: 0 auto;
+}
+
+#bb-flowers-in-vase {
+    position: absolute;
+    top: 10px;
+    left: 0;
+    right: 0;
+    margin: auto;
+    height: 140px;
+    width: 100%;
+    pointer-events: none;
+}
+
+.bb-flower-in-vase {
+    width: 40px;
+    position: absolute;
+    transition: all 0.3s ease;
 }
