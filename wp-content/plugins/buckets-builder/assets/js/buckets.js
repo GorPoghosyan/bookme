@@ -1,58 +1,125 @@
 jQuery(function($){
-    function updateTotal(){
-        let total = 0;
-        $(".bucket-item").each(function(){
-            let price = parseFloat($(this).data('price'));
-            let qty = parseInt($(this).find("input").val());
-            total += price * qty;
-        });
-        $("#bucket-total").text(total.toFixed(2));
+    // helper format based on passed currency settings
+    function formatCurrency(value) {
+        var sym = buckets_builder.currency_symbol || '$';
+        var pos = buckets_builder.currency_pos || 'left';
+        var num = Number(value).toFixed(2);
+        if (pos === 'right') return num + ' ' + sym;
+        return sym + ' ' + num;
     }
 
-    $(".plus").click(function(){
-        let input = $(this).siblings("input");
-        input.val(parseInt(input.val())+1);
-        updateTotal();
+    function parseNumber(v){
+        var n = parseFloat(v);
+        return isNaN(n) ? 0 : n;
+    }
+
+    function updateTotalAndUI(){
+        var total = 0;
+        $(".bb-item").each(function(){
+            var price = parseNumber($(this).data('price'));
+            var qty = parseInt($(this).find('.bb-qty-input').val()) || 0;
+            total += price * qty;
+        });
+        $("#bucket-total").text(formatCurrency(total));
+        return total;
+    }
+
+    // plus/minus
+    $(document).on('click', '.bb-plus', function(){
+        var $input = $(this).siblings('.bb-qty-input');
+        var v = parseInt($input.val()) || 0;
+        $input.val(v + 1);
+        updateTotalAndUI();
     });
 
-    $(".minus").click(function(){
-        let input = $(this).siblings("input");
-        let val = parseInt(input.val());
-        if(val > 0) input.val(val-1);
-        updateTotal();
+    $(document).on('click', '.bb-minus', function(){
+        var $input = $(this).siblings('.bb-qty-input');
+        var v = parseInt($input.val()) || 0;
+        if (v > 0) $input.val(v - 1);
+        updateTotalAndUI();
     });
 
-    $("#bucket-next").click(function(){
-        let list = $("#bucket-list").empty();
-        $(".bucket-item").each(function(){
-            let name = $(this).find("h4").text();
-            let qty = $(this).find("input").val();
-            let price = $(this).data('price');
-            if(qty > 0){
-                list.append("<li>"+name+" x "+qty+" = "+(qty*price)+"</li>");
+    // Tabs clickable
+    $(document).on('click', '.bb-tab', function(){
+        var step = $(this).data('step');
+        $('.bb-tab').removeClass('active');
+        $(this).addClass('active');
+        $('.bb-step').removeClass('active');
+        $('.bb-step-' + step).addClass('active');
+    });
+
+    // Next button -> fill review table and switch to step 2
+    $('#bucket-next').on('click', function(e){
+        e.preventDefault();
+        var total = updateTotalAndUI();
+        var $list = $('#bucket-list').empty();
+        $(".bb-item").each(function(){
+            var name = $(this).find('.bb-name').text();
+            var qty = parseInt($(this).find('.bb-qty-input').val()) || 0;
+            var price = parseNumber($(this).data('price'));
+            if (qty > 0) {
+                var subtotal = (price * qty).toFixed(2);
+                $list.append('<tr><td>' + $('<div>').text(name).html() + '</td><td>' + qty + '</td><td>' + formatCurrency(subtotal) + '</td></tr>');
             }
         });
-        $("#bucket-review").show();
+        $('#bucket-total-final').text(formatCurrency(total));
+        // show step 2
+        $('.bb-tab').removeClass('active');
+        $('.bb-tab[data-step=2]').addClass('active');
+        $('.bb-step').removeClass('active');
+        $('.bb-step-2').addClass('active');
+        // scroll to top of builder
+        $('html,body').animate({ scrollTop: $('#bucket-builder').offset().top }, 300);
     });
 
-    $("#bucket-add-to-cart").click(function(){
-        let items = [];
-        $(".bucket-item").each(function(){
-            let qty = parseInt($(this).find("input").val());
-            if(qty>0){
-                items.push({
-                    id: $(this).data('id'),
-                    qty: qty,
-                    price: $(this).data('price')
-                });
-            }
+    // Back
+    $('#bucket-back').on('click', function(){
+        $('.bb-tab').removeClass('active');
+        $('.bb-tab[data-step=1]').addClass('active');
+        $('.bb-step').removeClass('active');
+        $('.bb-step-1').addClass('active');
+        $('html,body').animate({ scrollTop: $('#bucket-builder').offset().top }, 300);
+    });
+
+    // Add to cart (send AJAX)
+    $('#bucket-add-to-cart').on('click', function(){
+        var items = [];
+        $(".bb-item").each(function(){
+            var id = $(this).data('id');
+            var qty = parseInt($(this).find('.bb-qty-input').val()) || 0;
+            if (qty > 0) items.push({ id: id, qty: qty });
         });
 
-        $.post(wc_add_to_cart_params.ajax_url, {
-            action: "buckets_add_to_cart",
-            items: items
-        }, function(){
-            window.location.href = "/cart";
-        });
+        if (items.length === 0) {
+            alert('Please choose at least one product.');
+            return;
+        }
+
+        var postData = {
+            action: 'buckets_add_to_cart',
+            items: JSON.stringify(items),
+            nonce: buckets_builder.nonce
+        };
+
+        // disable button
+        $('#bucket-add-to-cart').prop('disabled', true).text('Adding...');
+
+        $.post(buckets_builder.ajax_url, postData)
+            .done(function(resp){
+                if (resp.success) {
+                    // redirect to cart
+                    window.location.href = resp.data.cart_url || buckets_builder.cart_url || '/cart';
+                } else {
+                    alert(resp.data && resp.data.message ? resp.data.message : 'Error adding to cart');
+                    $('#bucket-add-to-cart').prop('disabled', false).text('SEND');
+                }
+            })
+            .fail(function(){
+                alert('AJAX error. Please try again.');
+                $('#bucket-add-to-cart').prop('disabled', false).text('SEND');
+            });
     });
+
+    // initial total
+    updateTotalAndUI();
 });
