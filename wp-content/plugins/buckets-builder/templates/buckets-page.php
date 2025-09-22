@@ -30,14 +30,13 @@ $products = get_option( 'buckets_products', [] );
                         $product = wc_get_product( $pid );
                         if ( ! $product ) continue;
                         $price = $product->get_price();
-                        $image_url = get_the_post_thumbnail_url( $product->get_id() );
-                        $image_name = basename( $image_url );
+                        $image_url = get_the_post_thumbnail_url( $product->get_id(), 'medium' );
                         ?>
-                        <div class="bb-item" data-id="<?php echo esc_attr( $pid ); ?>" data-price="<?php echo esc_attr( $price ); ?>" data-flower="<?php echo $image_name; ?>">
-                            <div class="bb-thumb"><?php echo $product->get_image( 'medium' ); ?></div>
+                        <div class="bb-item" data-id="<?= esc_attr( $pid ) ?>" data-price="<?= esc_attr( $price ) ?>" data-flower="<?= $image_url ?>">
+                            <div class="bb-thumb"><?= $product->get_image( 'medium' ) ?></div>
                             <div class="bb-info">
-                                <h4 class="bb-name"><?php echo esc_html( $product->get_name() ); ?></h4>
-                                <div class="bb-price"><?php echo wp_kses_post( wc_price( $price ) ); ?></div>
+                                <h4 class="bb-name"><?= esc_html( $product->get_name() ) ?></h4>
+                                <div class="bb-price"><?= wp_kses_post( wc_price( $price ) ) ?></div>
                                 <div class="bb-qty">
                                     <button class="bb-minus" type="button">-</button>
                                     <input class="bb-qty-input" type="number" value="0" min="0" readonly>

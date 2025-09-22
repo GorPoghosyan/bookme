@@ -62,7 +62,7 @@ jQuery(function($){
                 positions.push({top, left});
 
                 const img = $("<img>")
-                    .attr("src", "/wp-content/plugins/buckets-builder/assets/img/flowers/" + flowerName)
+                    .attr("src", flowerName)
                     .addClass("bb-flower-in-vase")
                     .css({
                         top: top + "px",
