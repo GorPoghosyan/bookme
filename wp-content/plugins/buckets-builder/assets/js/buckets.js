@@ -40,18 +40,24 @@ jQuery(function($){
     });
 
     // Tabs clickable
-    $(document).on('click', '.bb-tab', function(){
-        var step = $(this).data('step');
-        $('.bb-tab').removeClass('active');
-        $(this).addClass('active');
-        $('.bb-step').removeClass('active');
-        $('.bb-step-' + step).addClass('active');
-    });
+    // $(document).on('click', '.bb-tab', function(){
+    //     var step = $(this).data('step');
+    //     $('.bb-tab').removeClass('active');
+    //     $(this).addClass('active');
+    //     $('.bb-step').removeClass('active');
+    //     $('.bb-step-' + step).addClass('active');
+    // });
 
     // Next button -> fill review table and switch to step 2
     $('#bucket-next').on('click', function(e){
         e.preventDefault();
         var total = updateTotalAndUI();
+
+        if (total === 0) {
+            alert('Խնդրում ենք ընտրել առնվազն մեկ ապրանք։');
+            return;
+        }
+
         var $list = $('#bucket-list').empty();
         $(".bb-item").each(function(){
             var name = $(this).find('.bb-name').text();
@@ -111,12 +117,12 @@ jQuery(function($){
                     window.location.href = resp.data.cart_url || buckets_builder.cart_url || '/cart';
                 } else {
                     alert(resp.data && resp.data.message ? resp.data.message : 'Error adding to cart');
-                    $('#bucket-add-to-cart').prop('disabled', false).text('SEND');
+                    $('#bucket-add-to-cart').prop('disabled', false).text('ADD TO CART');
                 }
             })
             .fail(function(){
                 alert('AJAX error. Please try again.');
-                $('#bucket-add-to-cart').prop('disabled', false).text('SEND');
+                $('#bucket-add-to-cart').prop('disabled', false).text('ADD TO CART');
             });
     });
 
