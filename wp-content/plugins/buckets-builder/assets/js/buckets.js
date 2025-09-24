@@ -43,6 +43,14 @@ jQuery(function($){
         updateTotalAndUI();
     });
 
+    $(document).on('click', '.bb-clear-all', function(){
+        $("#bb-flowers-in-vase").empty();
+        $(".bb-item").each(function(i) {
+            $(this).find('.bb-qty-input').val(0);
+        });
+        updateTotalAndUI();
+    });
+
     function updateFlowersInVase() {
         const container = $("#bb-flowers-in-vase").empty();
         const positions = []; // keep used positions

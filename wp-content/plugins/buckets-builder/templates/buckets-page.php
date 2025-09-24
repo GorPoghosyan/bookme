@@ -94,6 +94,9 @@ $products = get_option( 'buckets_products', [] );
                 <strong>Total:</strong>
                 <span id="bucket-total">$0.00</span>
             </div>
+            <div class="bb-clear-all">
+                <a class="bb-clear" style="cursor: pointer"><span>clear</span></a>
+            </div>
         </div>
     </div>
 </div>

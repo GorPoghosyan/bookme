@@ -101,6 +101,8 @@
 .bb-btn-back { border-color:#ec1e8c; color:#111; }
 .bb-btn-send { border-color:#7a18b7; color:#111; }
 
+.bb-clear-all { padding: 10px; margin-top: 20px; }
+
 /* responsive */
 @media (max-width:600px){
     .bb-products { grid-template-columns: 1fr; }
