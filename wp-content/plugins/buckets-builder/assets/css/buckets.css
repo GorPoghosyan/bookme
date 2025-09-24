@@ -1,7 +1,11 @@
 /* Basic layout & typography */
+.buckets-container {
+    display: flex;
+}
 .bb-container {
-    max-width: 1000px;
-    margin: 30px auto;
+    width: 100%;
+    max-width: 1200px;
+    /*margin: 30px auto;*/
     font-family: "Helvetica Neue", Arial, sans-serif;
     color: #222;
     padding: 0 16px;
@@ -77,7 +81,7 @@
 .bb-qty button { width: 32px; height: 32px; border:1px solid #ddd; background:#fff; cursor:pointer; border-radius:4px; font-weight:600; }
 
 /* summary row */
-.bb-summary-row { display:flex; justify-content:space-between; align-items:center; margin-top: 20px; }
+.bb-summary-row { display:flex; justify-content:space-between; align-items:center; margin-top: 20px; margin: 30px auto;}
 .bb-summary-total { font-size:18px; font-weight:700; }
 
 /* review table */
@@ -92,6 +96,7 @@
 .bb-actions { display:flex; gap:14px; align-items:center; }
 
 /* Buttons */
+.bb-btn-next-continer { display: flex; justify-content: flex-end; }
 .bb-btn { padding: 10px 20px; border:2px solid #222; background:transparent; cursor:pointer; text-transform:uppercase; letter-spacing:2px; font-weight:700; }
 .bb-btn-back { border-color:#ec1e8c; color:#111; }
 .bb-btn-send { border-color:#7a18b7; color:#111; }
@@ -100,6 +105,17 @@
 @media (max-width:600px){
     .bb-products { grid-template-columns: 1fr; }
     .bb-tab.active:after { display:none; }
+}
+@media (max-width:768px){
+    .buckets-container {
+        flex-direction: column-reverse;
+    }
+    .bb-tabs {
+        font-size: 10px;
+    }
+    .bb-container {
+        padding: 0;
+    }
 }
 
 .bb-summary-box {
@@ -115,7 +131,7 @@
 }
 
 .vase-img {
-    width: 150px;
+    width: 100px;
     margin: 0 auto;
 }
 

@@ -36,9 +36,11 @@ jQuery(function($){
     $(document).on('click', '.bb-minus', function(){
         var $input = $(this).siblings('.bb-qty-input');
         var v = parseInt($input.val()) || 0;
-        if (v > 0) $input.val(v - 1);
+        if (v > 0) {
+            $input.val(v - 1);
+            updateFlowersInVase();
+        }
         updateTotalAndUI();
-        updateFlowersInVase();
     });
 
     function updateFlowersInVase() {
