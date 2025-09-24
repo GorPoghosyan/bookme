@@ -1,7 +1,32 @@
 <?php
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-$products = get_option( 'buckets_products', [] );
+$categories = [
+    'flowers' => 'flowers for bucket',
+    'leaves'  => 'leaves for bucket'
+];
+
+$products_by_category = [];
+
+foreach ( $categories as $key => $cat_name ) {
+    $args = [
+        'post_type'      => 'product',
+        'posts_per_page' => -1,
+        'orderby'        => 'title',
+        'order'          => 'ASC',
+        'tax_query'      => [
+            [
+                'taxonomy' => 'product_cat',
+                'field'    => 'name',
+                'terms'    => $cat_name,
+            ]
+        ],
+    ];
+
+    $loop = new WP_Query( $args );
+    $products_by_category[ $key ] = $loop->posts;
+    wp_reset_postdata();
+}
 ?>
 <div class="buckets-container">
     <div id="bucket-builder" class="bb-container">
@@ -18,7 +43,7 @@ $products = get_option( 'buckets_products', [] );
             </div>
         </div>
 
-        <?php if ( empty( $products ) ) : ?>
+        <?php if ( empty( $products_by_category ) ) : ?>
             <p>No products selected in admin. Please choose products in Buckets settings.</p>
         <?php else : ?>
 
@@ -26,27 +51,61 @@ $products = get_option( 'buckets_products', [] );
 
                 <!-- Step 1 -->
                 <div class="bb-step bb-step-1 active">
-                    <div class="bb-products">
-                        <?php foreach ( $products as $pid ) :
-                            $product = wc_get_product( $pid );
-                            if ( ! $product ) continue;
-                            $price = $product->get_price();
-                            $image_url = get_the_post_thumbnail_url( $product->get_id(), 'medium' );
-                            ?>
-                            <div class="bb-item" data-id="<?= esc_attr( $pid ) ?>" data-price="<?= esc_attr( $price ) ?>" data-flower="<?= $image_url ?>">
-                                <div class="bb-thumb"><?= $product->get_image( 'medium' ) ?></div>
-                                <div class="bb-info">
-                                    <h4 class="bb-name"><?= esc_html( $product->get_name() ) ?></h4>
-                                    <div class="bb-price"><?= wp_kses_post( wc_price( $price ) ) ?></div>
-                                    <div class="bb-qty">
-                                        <button class="bb-minus" type="button">-</button>
-                                        <input class="bb-qty-input" type="number" value="0" min="0" readonly>
-                                        <button class="bb-plus" type="button">+</button>
+                    <div class="bb-subtabs">
+                        <button class="bb-subtab active" data-sub="flowers">Flowers</button>
+                        <button class="bb-subtab" data-sub="leaves">Leaves</button>
+                    </div>
+
+                    <div class="bb-subcontent bb-subcontent-flowers active">
+                        <div class="bb-products">
+                            <?php foreach ( $products_by_category['flowers'] as $product ) :
+                                $pid = $product->ID;
+                                $wc_product = wc_get_product( $pid );
+                                if ( ! $wc_product ) continue;
+                                $price = $wc_product->get_price();
+                                $image_url = get_the_post_thumbnail_url( $pid, 'medium' );
+                                ?>
+                                <div class="bb-item flowers-items" data-id="<?= esc_attr( $pid ) ?>" data-price="<?= esc_attr( $price ) ?>" data-flower="<?= $image_url ?>">
+                                    <div class="bb-thumb"><?= $wc_product->get_image( 'medium' ) ?></div>
+                                    <div class="bb-info">
+                                        <h4 class="bb-name"><?= esc_html( $wc_product->get_name() ) ?></h4>
+                                        <div class="bb-price"><?= wp_kses_post( wc_price( $price ) ) ?></div>
+                                        <div class="bb-qty">
+                                            <button class="bb-minus" type="button">-</button>
+                                            <input class="bb-qty-input" type="number" value="0" min="0" readonly>
+                                            <button class="bb-plus" type="button">+</button>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        <?php endforeach; ?>
+                            <?php endforeach; ?>
+                        </div>
                     </div>
+
+                    <div class="bb-subcontent bb-subcontent-leaves">
+                        <div class="bb-products">
+                            <?php foreach ( $products_by_category['leaves'] as $product ) :
+                                $pid = $product->ID;
+                                $wc_product = wc_get_product( $pid );
+                                if ( ! $wc_product ) continue;
+                                $price = $wc_product->get_price();
+                                $image_url = get_the_post_thumbnail_url( $pid, 'medium' );
+                                ?>
+                                <div class="bb-item leaves-items" data-id="<?= esc_attr( $pid ) ?>" data-price="<?= esc_attr( $price ) ?>" data-flower="<?= $image_url ?>">
+                                    <div class="bb-thumb"><?= $wc_product->get_image( 'medium' ) ?></div>
+                                    <div class="bb-info">
+                                        <h4 class="bb-name"><?= esc_html( $wc_product->get_name() ) ?></h4>
+                                        <div class="bb-price"><?= wp_kses_post( wc_price( $price ) ) ?></div>
+                                        <div class="bb-qty">
+                                            <button class="bb-minus" type="button">-</button>
+                                            <input class="bb-qty-input" type="number" value="0" min="0" readonly>
+                                            <button class="bb-plus" type="button">+</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+
                     <div class="bb-btn-next-continer">
                         <button id="bucket-next" class="bb-btn bb-btn-next">Next</button>
                     </div>

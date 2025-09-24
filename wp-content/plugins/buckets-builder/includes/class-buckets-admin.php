@@ -37,17 +37,32 @@ class Buckets_Admin {
                         <td>
                             <select id="buckets_products" name="buckets_products[]" multiple size="10" style="min-width:350px;">
                                 <?php
-                                $args = [ 'post_type' => 'product', 'posts_per_page' => -1, 'orderby' => 'title', 'order' => 'ASC' ];
+                                $categories = ['flowers for bucket', 'leaves for bucket'];
+
+                                $args = [
+                                    'post_type'      => 'product',
+                                    'posts_per_page' => -1,
+                                    'orderby'        => 'title',
+                                    'order'          => 'ASC',
+                                    'tax_query'      => [
+                                        [
+                                            'taxonomy' => 'product_cat',
+                                            'field'    => 'name',
+                                            'terms'    => $categories,
+                                        ]
+                                    ],
+                                ];
+
                                 $loop = new WP_Query( $args );
                                 while ( $loop->have_posts() ) : $loop->the_post();
-                                    $id = get_the_ID();
+                                    $id  = get_the_ID();
                                     $sel = in_array( $id, (array) $products ) ? 'selected' : '';
                                     echo "<option value='{$id}' {$sel}>" . esc_html( get_the_title() ) . "</option>";
                                 endwhile;
                                 wp_reset_postdata();
                                 ?>
                             </select>
-                            <p class="description">Hold Ctrl (Cmd on mac) + click to select multiple. Save to apply.</p>
+                            <p class="description">Hold Ctrl (Cmd on Mac) + click to select multiple. Save to apply.</p>
                         </td>
                     </tr>
                 </table>

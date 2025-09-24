@@ -85,6 +85,14 @@ jQuery(function($){
         });
     }
 
+    $(document).on('click', '.bb-subtab', function(){
+        var sub = $(this).data('sub');
+        $('.bb-subtab').removeClass('active');
+        $(this).addClass('active');
+
+        $('.bb-subcontent').removeClass('active');
+        $('.bb-subcontent-' + sub).addClass('active');
+    });
 
     // Tabs clickable
     // $(document).on('click', '.bb-tab', function(){

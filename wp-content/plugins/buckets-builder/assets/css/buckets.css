@@ -152,4 +152,39 @@
     width: 40px;
     position: absolute;
     transition: all 0.3s ease;
+    -webkit-transform-origin-y: top;
 }
+
+.bb-subcontent { display: none; }
+.bb-subcontent.active { display: block; }
+
+.bb-subtab {
+    width: 25%;
+    background: transparent;
+    border: 1px solid #dee2e6;
+    color: #000;
+    display: inline-block;
+    flex: 1 1 auto;
+    margin-bottom: -1px;
+    outline: 0 !important;
+    padding: 0.5rem 1rem;
+    text-align: center;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 6px 6px 0 0;
+}
+
+.bb-subtab:hover {
+    background: #f8f9fa; /* թեթև մոխրագույն */
+    color: #ec1e8c;
+    border-color: #dee2e6 #dee2e6 #fff;
+}
+
+.bb-subtab.active {
+    background: #ec1e8c;      /* 👈 ակտիվի գույնը վարդագույն */
+    border-color: #ec1e8c;
+    color: #fff;              /* սպիտակ տեքստ */
+    font-weight: 600;
+}
+
