@@ -47,6 +47,9 @@ $products = get_option( 'buckets_products', [] );
                             </div>
                         <?php endforeach; ?>
                     </div>
+                    <div class="bb-btn-next-continer">
+                        <button id="bucket-next" class="bb-btn bb-btn-next">Next</button>
+                    </div>
                 </div>
 
                 <!-- Step 2 -->
@@ -76,9 +79,7 @@ $products = get_option( 'buckets_products', [] );
                         </div>
                     </div>
                 </div>
-                <div class="bb-btn-next-continer">
-                    <button id="bucket-next" class="bb-btn bb-btn-next">Next</button>
-                </div>
+
             </div>
 
         <?php endif; ?>
