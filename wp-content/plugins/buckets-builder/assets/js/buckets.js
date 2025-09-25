@@ -51,38 +51,108 @@ jQuery(function($){
         updateTotalAndUI();
     });
 
-    function updateFlowersInVase() {
-        const container = $("#bb-flowers-in-vase").empty();
-        const positions = []; // keep used positions
+    function updateFlowersInVase(optionalItems) {
+        var res = optionalItems ? { items: optionalItems } : (function(){
+            var items = [];
+            $(".bb-item").each(function(){
+                var qty = parseInt($(this).find('.bb-qty-input').val()) || 0;
+                var src = $(this).data("flower");
+                if (src && qty > 0) {
+                    items.push({ src: src, qty: qty });
+                }
+            });
+            return { items: items };
+        })();
 
-        $(".bb-item").each(function(i){
-            const qty = parseInt($(this).find('.bb-qty-input').val()) || 0;
-            const flowerName = $(this).data('flower');
-            if (!flowerName) return;
+        var items = res.items || [];
+        var $container = $("#bb-flowers-in-vase");
+        if (!$container.length) return;
 
-            for (let j = 0; j < qty; j++) {
-                // Avoid overlapping: generate random top/left not already used
-                let top, left, attempts = 0;
-                do {
-                    top = Math.floor(10 - Math.random() * 60);
-                    left = Math.floor(60 + Math.random() * 90);
-                    attempts++;
-                } while (positions.find(p => Math.abs(p.top - top) < 20 && Math.abs(p.left - left) < 20) && attempts < 20);
+        // ensure relative positioning
+        if ($container.css('position') === 'static') {
+            $container.css('position','relative');
+        }
 
-                positions.push({top, left});
+        var containerW = Math.max(200, $container.width());
+        var containerH = Math.max(200, $container.height());
+        var cx = containerW / 2;
+        var cy = containerH * 0.48;
+        var baseImgSize = Math.round(Math.min(containerW, containerH) * 0.28);
+        var avgDiameter = baseImgSize;
+        var baseRadius = avgDiameter * 0.35;
+        var radiusStep = avgDiameter * 0.78;
+        var spacingFactor = 0.95;
+        var angleJitter = 0.12;
+        var posJitter = Math.max(4, Math.round(baseImgSize*0.05));
+        var frag = document.createDocumentFragment();
 
-                const img = $("<img>")
-                    .attr("src", flowerName)
-                    .addClass("bb-flower-in-vase")
-                    .css({
-                        top: top + "px",
-                        left: left + "px",
-                        transform: "rotate(" + Math.floor(Math.random() * 360) + "deg)",
-                        zIndex: 10 + j
-                    });
-                container.append(img);
-            }
+        // expand items -> separate flowers
+        var flowers = [];
+        items.forEach(function(it){
+            if (!it.src) return;
+            for (var k=0;k<it.qty;k++) flowers.push({ src: it.src });
         });
+        if (flowers.length === 0) {
+            $container.empty();
+            return;
+        }
+
+        // placement loop
+        var placements = [];
+        var idx = 0, layer = 0, maxLayers = 20;
+        var maxR = baseRadius + maxLayers * radiusStep;
+        while (idx < flowers.length && layer <= maxLayers) {
+            var R = baseRadius + layer * radiusStep;
+            var slots = Math.max(1, Math.floor((2*Math.PI*R) / (avgDiameter * spacingFactor)));
+            var startAngle = (layer % 2 === 0) ? (Math.random() * Math.PI * 2) : 0;
+            for (var s = 0; s < slots && idx < flowers.length; s++, idx++) {
+                var angle = startAngle + s*(2*Math.PI/slots) + (Math.random()*2-1)*angleJitter;
+                var x = cx + R*Math.cos(angle) + (Math.random()*2-1)*posJitter;
+                var y = cy + R*Math.sin(angle) + (Math.random()*2-1)*posJitter - 12*(1 - R/maxR);
+                var scale = 0.8 + 0.25*(1 - R/maxR) + (Math.random()*0.12-0.06);
+                var rotate = (angle * 180/Math.PI) + (Math.random()*16 - 8);
+                placements.push({ x, y, scale, rotate, src: flowers[idx].src, R: R });
+            }
+            layer++;
+        }
+
+        // overlap correction
+        if (placements.length <= 250) {
+            for (var it = 0; it < 4; it++) {
+                for (var i = 0; i < placements.length; i++) {
+                    for (var j = i+1; j < placements.length; j++) {
+                        var a = placements[i], b = placements[j];
+                        var dx = a.x - b.x, dy = a.y - b.y;
+                        var dist = Math.sqrt(dx*dx + dy*dy) || 0.0001;
+                        var ri = (avgDiameter*0.5) * a.scale;
+                        var rj = (avgDiameter*0.5) * b.scale;
+                        var overlap = ri + rj - dist;
+                        if (overlap > 0) {
+                            var ux = dx/dist, uy = dy/dist;
+                            var shift = overlap * 0.52;
+                            a.x += ux * shift; a.y += uy * shift;
+                            b.x -= ux * shift; b.y -= uy * shift;
+                        }
+                    }
+                }
+            }
+        }
+
+        // render
+        $container.empty();
+        placements.forEach(function(p, i){
+            var img = document.createElement("img");
+            img.src = p.src;
+            img.className = "bb-flower-in-vase";
+            img.style.position = "absolute";
+            img.style.left = (p.x - avgDiameter/2) + "px";
+            img.style.top  = (p.y - avgDiameter/2) + "px";
+            img.style.width = (avgDiameter * p.scale) + "px";
+            img.style.transform = "rotate(" + p.rotate + "deg)";
+            img.style.zIndex = 100 + Math.round(p.R);
+            frag.appendChild(img);
+        });
+        $container[0].appendChild(frag);
     }
 
     $(document).on('click', '.bb-subtab', function(){

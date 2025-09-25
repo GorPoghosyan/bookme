@@ -130,6 +130,7 @@
 #bb-vase-preview {
     position: relative;
     width: 100%;
+    padding-top: 60%;
 }
 
 .vase-img {
