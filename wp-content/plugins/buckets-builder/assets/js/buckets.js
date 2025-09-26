@@ -52,107 +52,55 @@ jQuery(function($){
     });
 
     function updateFlowersInVase(optionalItems) {
-        var res = optionalItems ? { items: optionalItems } : (function(){
-            var items = [];
-            $(".bb-item").each(function(){
-                var qty = parseInt($(this).find('.bb-qty-input').val()) || 0;
-                var src = $(this).data("flower");
-                if (src && qty > 0) {
-                    items.push({ src: src, qty: qty });
+        const $c = $("#bb-flowers-in-vase");
+        if (!$c.length) return;
+        if ($c.css("position") === "static") $c.css("position", "relative");
+
+        const items = optionalItems || $(".bb-item").map((_, el) => {
+            const $el = $(el), qty = +$el.find(".bb-qty-input").val() || 0;
+            return Array(qty).fill({ src: $el.data("flower") });
+        }).get().flat();
+
+        if (!items.length) return $c.empty();
+
+        const W = Math.max(200, $c.width()), H = Math.max(200, $c.height()),
+            cx = W/2, cy = H*0.48, d = Math.min(W,H)*0.28,
+            R0 = d*0.35, step = d*0.78, maxR = R0 + 20*step;
+        let idx=0, placements=[];
+
+        for (let layer=0; idx<items.length && layer<=20; layer++) {
+            const R = R0 + layer*step,
+                slots = Math.max(1, Math.floor((2*Math.PI*R)/(d*0.95))),
+                start = layer%2?0:Math.random()*2*Math.PI;
+            for (let s=0; s<slots && idx<items.length; s++,idx++) {
+                const ang = start + s*(2*Math.PI/slots) + (Math.random()*2-1)*.12,
+                    x = cx+R*Math.cos(ang)+(Math.random()*2-1)*d*.05,
+                    y = cy+R*Math.sin(ang)+(Math.random()*2-1)*d*.05 - 12*(1-R/maxR),
+                    sc=0.8+0.25*(1-R/maxR)+(Math.random()*.12-.06);
+                placements.push({x,y,sc,rot:ang*180/Math.PI+(Math.random()*16-8),src:items[idx].src,R});
+            }
+        }
+
+        // light overlap fix
+        for (let it=0; it<4 && placements.length<=250; it++)
+            for (let i=0;i<placements.length;i++) for (let j=i+1;j<placements.length;j++) {
+                let a=placements[i], b=placements[j],
+                    dx=a.x-b.x, dy=a.y-b.y, dist=Math.hypot(dx,dy)||.001,
+                    o=(d*.5*a.sc + d*.5*b.sc - dist);
+                if (o>0){ let ux=dx/dist, uy=dy/dist, sh=o*.52;
+                    a.x+=ux*sh; a.y+=uy*sh; b.x-=ux*sh; b.y-=uy*sh;
                 }
+            }
+
+        $c.empty()[0].append(...placements.map(p=>{
+            let img=new Image();
+            Object.assign(img.style,{
+                position:"absolute",left:(p.x-d/2)+"px",top:(p.y-d/2)+"px",
+                width:(d*p.sc)+"px",transform:`rotate(${p.rot}deg)`,zIndex:100+Math.round(p.R)
             });
-            return { items: items };
-        })();
-
-        var items = res.items || [];
-        var $container = $("#bb-flowers-in-vase");
-        if (!$container.length) return;
-
-        // ensure relative positioning
-        if ($container.css('position') === 'static') {
-            $container.css('position','relative');
-        }
-
-        var containerW = Math.max(200, $container.width());
-        var containerH = Math.max(200, $container.height());
-        var cx = containerW / 2;
-        var cy = containerH * 0.48;
-        var baseImgSize = Math.round(Math.min(containerW, containerH) * 0.28);
-        var avgDiameter = baseImgSize;
-        var baseRadius = avgDiameter * 0.35;
-        var radiusStep = avgDiameter * 0.78;
-        var spacingFactor = 0.95;
-        var angleJitter = 0.12;
-        var posJitter = Math.max(4, Math.round(baseImgSize*0.05));
-        var frag = document.createDocumentFragment();
-
-        // expand items -> separate flowers
-        var flowers = [];
-        items.forEach(function(it){
-            if (!it.src) return;
-            for (var k=0;k<it.qty;k++) flowers.push({ src: it.src });
-        });
-        if (flowers.length === 0) {
-            $container.empty();
-            return;
-        }
-
-        // placement loop
-        var placements = [];
-        var idx = 0, layer = 0, maxLayers = 20;
-        var maxR = baseRadius + maxLayers * radiusStep;
-        while (idx < flowers.length && layer <= maxLayers) {
-            var R = baseRadius + layer * radiusStep;
-            var slots = Math.max(1, Math.floor((2*Math.PI*R) / (avgDiameter * spacingFactor)));
-            var startAngle = (layer % 2 === 0) ? (Math.random() * Math.PI * 2) : 0;
-            for (var s = 0; s < slots && idx < flowers.length; s++, idx++) {
-                var angle = startAngle + s*(2*Math.PI/slots) + (Math.random()*2-1)*angleJitter;
-                var x = cx + R*Math.cos(angle) + (Math.random()*2-1)*posJitter;
-                var y = cy + R*Math.sin(angle) + (Math.random()*2-1)*posJitter - 12*(1 - R/maxR);
-                var scale = 0.8 + 0.25*(1 - R/maxR) + (Math.random()*0.12-0.06);
-                var rotate = (angle * 180/Math.PI) + (Math.random()*16 - 8);
-                placements.push({ x, y, scale, rotate, src: flowers[idx].src, R: R });
-            }
-            layer++;
-        }
-
-        // overlap correction
-        if (placements.length <= 250) {
-            for (var it = 0; it < 4; it++) {
-                for (var i = 0; i < placements.length; i++) {
-                    for (var j = i+1; j < placements.length; j++) {
-                        var a = placements[i], b = placements[j];
-                        var dx = a.x - b.x, dy = a.y - b.y;
-                        var dist = Math.sqrt(dx*dx + dy*dy) || 0.0001;
-                        var ri = (avgDiameter*0.5) * a.scale;
-                        var rj = (avgDiameter*0.5) * b.scale;
-                        var overlap = ri + rj - dist;
-                        if (overlap > 0) {
-                            var ux = dx/dist, uy = dy/dist;
-                            var shift = overlap * 0.52;
-                            a.x += ux * shift; a.y += uy * shift;
-                            b.x -= ux * shift; b.y -= uy * shift;
-                        }
-                    }
-                }
-            }
-        }
-
-        // render
-        $container.empty();
-        placements.forEach(function(p, i){
-            var img = document.createElement("img");
-            img.src = p.src;
-            img.className = "bb-flower-in-vase";
-            img.style.position = "absolute";
-            img.style.left = (p.x - avgDiameter/2) + "px";
-            img.style.top  = (p.y - avgDiameter/2) + "px";
-            img.style.width = (avgDiameter * p.scale) + "px";
-            img.style.transform = "rotate(" + p.rotate + "deg)";
-            img.style.zIndex = 100 + Math.round(p.R);
-            frag.appendChild(img);
-        });
-        $container[0].appendChild(frag);
+            img.className="bb-flower-in-vase"; img.src=p.src;
+            return img;
+        }));
     }
 
     $(document).on('click', '.bb-subtab', function(){
